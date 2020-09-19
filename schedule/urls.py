@@ -15,7 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView
+from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
+    ScheduleCreate, EventCreate
+
 
 
 urlpatterns = [
@@ -33,6 +35,16 @@ urlpatterns = [
         r'^(?P<username>[\-\.\w]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})$',
         ScheduleView.as_view(),
         name='schedule'
+    ),
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/schedule_event',
+        ScheduleCreate.as_view(),
+        name='schedule_event'
+    ),
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/create_event',
+        EventCreate.as_view(),
+        name='create_event'
     ),
     path('', Home.as_view(), name='home'),
 ]

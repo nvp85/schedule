@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.list import ListView
@@ -74,16 +75,16 @@ class ScheduleView(ListView):
         context = super().get_context_data(**kwargs)
 
         day = date(int(self.kwargs['year']), int(self.kwargs['month']), int(self.kwargs['day']))
+        context['date'] = day
         day_begins = make_utc(datetime.combine(day, datetime.min.time()))
         day_ends = make_utc(datetime.combine(day, datetime.max.time()))
-
+        context['username'] = self.kwargs['username']
         time_delta = timedelta(seconds=1800) # 30 min
         context['time_delta'] = time_delta
         context['time_list'] = [day_begins + i * time_delta for i in range(48)]
         q = context['schedule_list']
         context['schedule_dict'] = {}
         for event in q:
-
             begin = max(
                 timezone.make_aware(
                     datetime(
@@ -96,7 +97,6 @@ class ScheduleView(ListView):
                 ),
                 day_begins
             )
-            print(begin)
             delta = timedelta(
                 minutes=event.start_time.minute,
                 seconds=event.start_time.second,
@@ -109,3 +109,20 @@ class ScheduleView(ListView):
                 context['schedule_dict'][current] = event.event.title
                 current = current + timedelta(minutes=30)
         return context
+
+
+class ScheduleCreate(CreateView):
+    model = Schedule
+    fields = ['event', 'start_time', 'notes']
+    template_name = 'schedule_event.html'
+
+
+class EventCreate(CreateView):
+    model = Event
+    fields = ['title', 'duration']
+    template_name = 'event_template.html'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+

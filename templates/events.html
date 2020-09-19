@@ -11,5 +11,5 @@
     {% else %}
         <p>No events are created.</p>
     {% endif %}
-    <a href="{% url 'profile' %}">Profile</a>
+    <a href="{% url 'calendar_redirect' username=user.username %}">Schedule</a>
 {% endblock %}

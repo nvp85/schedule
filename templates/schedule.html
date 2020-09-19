@@ -1,19 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{{ user.username }}</h2>
-    <p>Today {{ now|date }} </p>
-    {% if schedule_list %}
-        <ul>
-        {% for event in schedule_list %}
-            <li>{{ event.event.title }} {{ event.start_time }} - {{ event.end_time }} </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No events are scheduled today.</p>
+    <h2>{{ username }}</h2>
+    <p>The schedule for {{ date }} </p>
+    {% if user.username == username %}
+        {% if schedule_list %}
+            <ul>
+            {% for event in schedule_list %}
+                <li>{{ event.event.title }} {{ event.start_time }} - {{ event.end_time }} </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No events are scheduled today.</p>
+        {% endif %}
+        <p><a href="{% url "events" user.username %}">Created templates for events</a></p>
     {% endif %}
-    <p><a href="{% url "events" user.username %}">Created templates for events</a></p>
-    <p><a href="{% url "calendar_redirect" username=user.username %}">Calendar</a></p>
+
+    <p><a href="{% url "calendar_redirect" username=username %}">Calendar</a></p>
     <table>
         <tr>
             <th>Time</th>
