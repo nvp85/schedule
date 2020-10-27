@@ -4,6 +4,7 @@ import uuid, datetime
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from django.template.defaultfilters import slugify
 
 
 class Event(models.Model):
@@ -12,18 +13,36 @@ class Event(models.Model):
     duration = models.DurationField(default=datetime.timedelta())
     margin_before = models.DurationField(default=datetime.timedelta())
     margin_after = models.DurationField(default=datetime.timedelta())
+    slug = models.SlugField(null=True)
 
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
+    def get_absolute_url(self): # maybe it's redundant
         username = self.owner.username
         return reverse('events', kwargs={'username': username})
+
+    def generate_slug(self):
+        new_slug = slugify(self.title)
+        suffix = ''
+        counter = 0
+        while Event.objects.filter(owner=self.owner, slug=new_slug + suffix).exists():
+            counter += 1
+            suffix = f"-{counter}"
+        self.slug = new_slug + suffix
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.generate_slug()
+        super().save( *args, **kwargs)
+
+    class Meta:
+        unique_together = ['slug', 'owner']
 
 
 class Invitation(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
 
 class Schedule(models.Model):
@@ -39,7 +58,7 @@ class Schedule(models.Model):
     def __str__(self):
         return self.event.title
 
-    def get_absolute_url(self):
+    def get_absolute_url(self): # is this used somewhere?
         username = self.event.owner.username
         year = f'{self.start_time.year:04d}'
         month = f'{self.start_time.month:02d}'
@@ -50,7 +69,11 @@ class Schedule(models.Model):
         cleaned_data = super().clean()
         start = self.start_time
         end = self.end_time
-        conflicting_events = Schedule.objects.filter(start_time__lt=end, start_time__gt=start-F('event__duration'))
+        conflicting_events = Schedule.objects.filter(
+            start_time__lt=end,
+            start_time__gt=start-F('event__duration'),
+            event__owner=self.event.owner,
+        )
         if conflicting_events.exists():
             raise ValidationError('Events overlap in time!')
         return cleaned_data

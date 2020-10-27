@@ -2,7 +2,8 @@
 
 {% block content %}
     <h2>{{ username }}</h2>
-    <h3>{{ year }}, {{ month_name }}</h3>
+    <p><a href="{% url "events" username=user.username %}">Manage</a> templates for Events.</p>
+    <h3>Schedule for {{ year }}, {{ month_name }}</h3>
     {% if calendar %}
         <table>
             <tr>
@@ -20,7 +21,15 @@
             {% endif %}
                     <td>
                         {% if day.0 != 0 %}
-                            <a href="{% url "schedule" username=username year=year month=month day=day.0|stringformat:"02d" %}">{{ day.0 }}</a>
+                            {% if event_slug %}
+                                <a href="{% url "event_schedule" username=username year=year month=month day=day.0|stringformat:"02d" event_slug=event_slug %}">
+                                {{ day.0 }}
+                                </a>
+                            {% else %}
+                                <a href="{% url "schedule" username=username year=year month=month day=day.0|stringformat:"02d" %}">
+                                    {{ day.0 }}
+                                </a>
+                            {% endif %}
                         {% endif %}
                     </td>
             {% if day.1 == 5 %}

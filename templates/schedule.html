@@ -11,7 +11,7 @@
             {% endfor %}
             </ul>
         {% else %}
-            <p>No events are scheduled today.</p>
+            <p>No events are scheduled for this date.</p>
         {% endif %}
         <p><a href="{% url "events" user.username %}">Created templates for events</a></p>
     {% endif %}
@@ -25,12 +25,25 @@
 
     {% for i in time_list %}
         <tr>
-            <td>{{ i|time:"H:i" }}</td>
-            <td>
-                {% if i in schedule_dict %}
+            {% if i in schedule_dict %}
+                <td>{{ i|time:"H:i" }}</td>
+                <td>
                     xxx
-                {% endif %}
-            </td>
+                </td>
+            {% else %}
+                <td>
+                    {% if not event_slug %}
+                        <a href="{% url "schedule_event" username=username %}">
+                            {{ i|time:"H:i" }}
+                        </a>
+                    {% else %}
+                        <a href="{% url "event_schedule_form" username=username event_slug=event_slug year=date.year  month=date|date:"m" day=date|date:"d" time=i|time:"H:i" %}">
+                            {{ i|time:"H:i" }}
+                        </a>
+                    {% endif %}
+                </td>
+                <td></td>
+            {% endif %}
         </tr>
     {% endfor %}
     </table>

@@ -3,13 +3,32 @@
 {% block content %}
     <h2>List of events</h2>
     {% if event_list %}
-        <ul>
+        <table>
+        <tr>
+            <th>Title</th>
+            <th>Duration</th>
+            <th colspan="3">Actions</th>
+        </tr>
         {% for event in event_list %}
-            <li>{{ event.title }} {{ event.duration }}</li>
+            <tr>
+                <td>{{ event.title }}</td>
+                <td>{{ event.duration }}</td>
+                <td>
+                    {% if event.slug %}
+                        <a href="{% url "event_calendar_redirect" username=user.username event_slug=event.slug %}">
+                            Schedule: {{ event.slug }}
+                        </a>
+                    {% endif %}
+                </td>
+                <td> Update </td>
+                <td> Delete </td>
+            </tr>
         {% endfor %}
-        </ul>
+        </table>
     {% else %}
         <p>No events are created.</p>
     {% endif %}
-    <a href="{% url 'calendar_redirect' username=user.username %}">Schedule</a>
+    <p><a href="{% url 'calendar_redirect' username=user.username %}">Schedule</a></p>
+    <p><a href="{% url "create_event" username=user.username %}">Create a new event template</a></p>
+
 {% endblock %}

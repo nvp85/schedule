@@ -41,6 +41,10 @@ class CalendarRedirectView(RedirectView):
         now = timezone.now()
         year = f'{now.year:04d}'
         month = f'{now.month:02d}'
+        if kwargs.get('event_slug'):
+            return reverse_lazy('event_calendar',
+                                kwargs=dict(username=kwargs['username'], event_slug=kwargs['event_slug'], year=year,
+                                            month=month))
         return reverse_lazy('calendar', kwargs=dict(username=kwargs['username'], year=year, month=month))
 
 
@@ -53,6 +57,7 @@ class CalendarView(TemplateView):
         context['user'] = user
         context['calendar'] = calendar.Calendar(firstweekday=6).itermonthdays2(int(kwargs['year']), int(kwargs['month']))
         context['month_name'] = calendar.month_name[int(kwargs['month'])]
+        context['event_slug'] = kwargs.get('event_slug')
         return context
 
 
@@ -79,6 +84,7 @@ class ScheduleView(ListView):
         day_begins = make_utc(datetime.combine(day, datetime.min.time()))
         day_ends = make_utc(datetime.combine(day, datetime.max.time()))
         context['username'] = self.kwargs['username']
+        context['event_slug'] = self.kwargs.get('event_slug')
         time_delta = timedelta(seconds=1800) # 30 min
         context['time_delta'] = time_delta
         context['time_list'] = [day_begins + i * time_delta for i in range(48)]
@@ -116,6 +122,30 @@ class ScheduleCreate(CreateView):
     fields = ['event', 'start_time', 'notes']
     template_name = 'schedule_event.html'
 
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.kwargs.get('year'):
+            year = int(self.kwargs.get('year'))
+            month = int(self.kwargs.get('month'))
+            day = int(self.kwargs.get('day'))
+            hours, minutes = map(int, self.kwargs.get('time').split(':'))
+            initial['start_time'] = datetime(
+                year=year,
+                month=month,
+                day=day,
+                hour=hours,
+                minute=minutes
+            )
+        slug = self.kwargs.get('event_slug')
+        if slug:
+            initial['event'] = get_object_or_404(Event, slug=slug)
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'].fields['event'].queryset = Event.objects.filter(owner=self.request.user)
+        return context
+
 
 class EventCreate(CreateView):
     model = Event
@@ -125,4 +155,7 @@ class EventCreate(CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
+
+
+
 
