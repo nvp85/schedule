@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
-    ScheduleCreate, EventCreate
+    ScheduleCreate, EventCreate, EventDelete
 
 
 
@@ -59,6 +59,12 @@ urlpatterns = [
     ),
 
     # Individual Event edit/delete/schedule/create an Invitation link
+    # Delete an Event
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/(?P<event_slug>[\-\.\w]+)/delete$',
+        EventDelete.as_view(),
+        name='event_delete'
+    ),
 
     # Schedule an Event from event list
     re_path(

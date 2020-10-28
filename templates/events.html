@@ -21,7 +21,11 @@
                     {% endif %}
                 </td>
                 <td> Update </td>
-                <td> Delete </td>
+                <td>
+                    {% if event.slug %}
+                        <a href="{% url "event_delete" username=user.username event_slug=event.slug %}">Delete</a>
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
         </table>

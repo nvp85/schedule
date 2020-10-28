@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import ValidationError
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.list import ListView
 from django.contrib.auth.forms import UserCreationForm
@@ -157,5 +157,22 @@ class EventCreate(CreateView):
         return super().form_valid(form)
 
 
+class EventDelete(DeleteView):
+    model = Event
+    template_name = 'event_delete.html'
 
+    def get_success_url(self):
+        return reverse_lazy('events', kwargs=dict(username=self.request.user.username))
+
+    def get_queryset(self):
+        owner = self.request.user
+        q = Event.objects.filter(owner=owner)
+        return q
+
+    def get_object(self, queryset=None):
+        slug = self.kwargs.get('event_slug')
+        if not queryset:
+            queryset = self.get_queryset()
+        obj = get_object_or_404(queryset, slug=slug)
+        return obj
 
