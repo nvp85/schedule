@@ -157,12 +157,7 @@ class EventCreate(CreateView):
         return super().form_valid(form)
 
 
-class EventDelete(DeleteView):
-    model = Event
-    template_name = 'event_delete.html'
-
-    def get_success_url(self):
-        return reverse_lazy('events', kwargs=dict(username=self.request.user.username))
+class GetEventMixin:
 
     def get_queryset(self):
         owner = self.request.user
@@ -175,4 +170,20 @@ class EventDelete(DeleteView):
             queryset = self.get_queryset()
         obj = get_object_or_404(queryset, slug=slug)
         return obj
+
+    def get_success_url(self):
+        return reverse_lazy('events', kwargs=dict(username=self.request.user.username))
+
+
+class EventDelete(GetEventMixin, DeleteView):
+    model = Event
+    template_name = 'event_delete.html'
+
+
+class EventUpdate(GetEventMixin, UpdateView):
+    model = Event
+    fields = ['title', 'duration']
+    template_name = 'event_template.html'
+
+
 

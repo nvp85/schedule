@@ -20,7 +20,11 @@
                         </a>
                     {% endif %}
                 </td>
-                <td> Update </td>
+                <td>
+                    {% if event.slug %}
+                        <a href="{% url "event_update" username=user.username event_slug=event.slug %}">Update</a>
+                    {% endif %}
+                </td>
                 <td>
                     {% if event.slug %}
                         <a href="{% url "event_delete" username=user.username event_slug=event.slug %}">Delete</a>
