@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    {% if list_of_links %}
+        <ul>
+            {% for el in list_of_links %}
+            <li>{{ el.event.title }}, {{ el.event.duration }}, link: /invite/{{ el.uuid }},
+                used {{ el.uses_counter }}/{{ el.max_number_of_uses }}, expire: {{ el.expiration_time }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <p>Create a new invitation link for the event {{ event.slug }}, {{ event.duration }}</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="submit">
+    </form>
+
+{% endblock %}

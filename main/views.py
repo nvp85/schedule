@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import calendar
 from main.utils import make_utc
 import pytz
-from .models import Schedule, Event
+from .models import Schedule, Event, Invitation
 
 
 class Home(TemplateView):
@@ -186,4 +186,24 @@ class EventUpdate(GetEventMixin, UpdateView):
     template_name = 'event_template.html'
 
 
+class InvitationCreate(CreateView):
+    model = Invitation
+    fields = ['max_number_of_uses', 'expiration_time']
+    template_name = 'invitation_create.html'
+
+    def get_event(self):
+        slug = self.kwargs.get('event_slug')
+        event = get_object_or_404(Event, slug=slug)
+        return event
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_event()
+        context['list_of_links'] = Invitation.objects.filter(event__owner=self.request.user, event=event)
+        context["event"] = event
+        return context
+
+    def form_valid(self, form):
+        form.instance.event = self.get_event()
+        return super().form_valid(form)
 

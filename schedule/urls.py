@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
-    ScheduleCreate, EventCreate, EventDelete, EventUpdate
+    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate
 
 
 
@@ -93,6 +93,13 @@ urlpatterns = [
         r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<time>[0-5][0-9]:[0-5][0-9])$',
         ScheduleCreate.as_view(),
         name='event_schedule_form'
+    ),
+
+    # Create an invitation link
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/(?P<event_slug>[\-\.\w]+)/create_invites$',
+        InvitationCreate.as_view(),
+        name='invitation_create'
     ),
 
     path('', Home.as_view(), name='home'),

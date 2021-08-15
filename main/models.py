@@ -3,8 +3,10 @@ from django.contrib.auth.models import User
 import uuid, datetime
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db.models import F
 from django.template.defaultfilters import slugify
+
 
 
 class Event(models.Model):
@@ -43,6 +45,14 @@ class Event(models.Model):
 class Invitation(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    uses_counter = models.IntegerField(default=0)
+    max_number_of_uses = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    expiration_time = models.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=7))
+
+    def get_absolute_url(self):
+        username = self.event.owner.username
+        event_slug = self.event.slug
+        return reverse('invitation_create', kwargs={'username': username, 'event_slug': event_slug})
 
 
 class Schedule(models.Model):
@@ -58,7 +68,7 @@ class Schedule(models.Model):
     def __str__(self):
         return self.event.title
 
-    def get_absolute_url(self): # is this used somewhere?
+    def get_absolute_url(self):
         username = self.event.owner.username
         year = f'{self.start_time.year:04d}'
         month = f'{self.start_time.month:02d}'
