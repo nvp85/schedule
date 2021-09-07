@@ -45,6 +45,14 @@ class CalendarRedirectView(RedirectView):
             return reverse_lazy('event_calendar',
                                 kwargs=dict(username=kwargs['username'], event_slug=kwargs['event_slug'], year=year,
                                             month=month))
+        if kwargs.get('uuid'):
+            invite = get_object_or_404(Invitation, uuid=kwargs['uuid'])
+            # just to check if the Invitation is valid # TODO: it should be in the model i guess or in form_valid
+            if invite.expiration_time < now or invite.uses_counter >= invite.max_number_of_uses:
+                # the invite is not valid
+                return reverse_lazy('login')  # TODO: change it to more informative page
+            return reverse_lazy('guest_calendar',
+                                kwargs=dict(uuid=kwargs['uuid'], year=year, month=month))
         return reverse_lazy('calendar', kwargs=dict(username=kwargs['username'], year=year, month=month))
 
 
@@ -53,11 +61,15 @@ class CalendarView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = get_object_or_404(User, username=kwargs['username'])
-        context['user'] = user
+        if kwargs.get('username'):
+            user = get_object_or_404(User, username=kwargs['username'])
+            context['user'] = user
+            context['event_slug'] = kwargs.get('event_slug')
+        if kwargs.get('uuid'):
+            invite = get_object_or_404(Invitation, uuid=kwargs['uuid'])
+            context['invite'] = invite
         context['calendar'] = calendar.Calendar(firstweekday=6).itermonthdays2(int(kwargs['year']), int(kwargs['month']))
         context['month_name'] = calendar.month_name[int(kwargs['month'])]
-        context['event_slug'] = kwargs.get('event_slug')
         return context
 
 
@@ -69,22 +81,33 @@ class ScheduleView(ListView):
         day = date(int(self.kwargs['year']), int(self.kwargs['month']), int(self.kwargs['day']))
         end_time = timezone.make_aware(datetime.combine(day, datetime.min.time()))
         start_time = timezone.make_aware(datetime.combine(day, datetime.max.time()))
-        q = Schedule.objects.filter(
-            event__owner=get_object_or_404(User, username=self.kwargs['username']),
-            start_time__gte=end_time - F('event__duration'),
-            start_time__lte=start_time
-        ).order_by('start_time')
+        q = []
+        if self.kwargs.get('uuid'):
+            invite = get_object_or_404(Invitation, uuid=self.kwargs['uuid'])
+            q = Schedule.objects.filter(
+                event__owner=invite.event.owner,
+                start_time__gte=end_time - F('event__duration'),
+                start_time__lte=start_time
+            ).order_by('start_time')
+        elif self.kwargs.get('username'):
+            q = Schedule.objects.filter(
+                event__owner=get_object_or_404(User, username=self.kwargs['username']),
+                start_time__gte=end_time - F('event__duration'),
+                start_time__lte=start_time
+            ).order_by('start_time')
         return q
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-
         day = date(int(self.kwargs['year']), int(self.kwargs['month']), int(self.kwargs['day']))
         context['date'] = day
         day_begins = make_utc(datetime.combine(day, datetime.min.time()))
         day_ends = make_utc(datetime.combine(day, datetime.max.time()))
-        context['username'] = self.kwargs['username']
-        context['event_slug'] = self.kwargs.get('event_slug')
+        if self.kwargs.get("username"):
+            context['username'] = self.kwargs['username']
+            context['event_slug'] = self.kwargs.get('event_slug')
+        elif self.kwargs.get('uuid'):
+            context['invite'] = get_object_or_404(Invitation, uuid=self.kwargs['uuid'])
         time_delta = timedelta(seconds=1800) # 30 min
         context['time_delta'] = time_delta
         context['time_list'] = [day_begins + i * time_delta for i in range(48)]
@@ -206,4 +229,43 @@ class InvitationCreate(CreateView):
     def form_valid(self, form):
         form.instance.event = self.get_event()
         return super().form_valid(form)
+
+
+class ScheduleAsGuest(CreateView):
+    model = Schedule
+    fields = ['notes',]
+    template_name = 'schedule_event.html'
+
+    def get_event(self):
+        uuid = self.kwargs.get("uuid")
+        event = get_object_or_404(Invitation, uuid=uuid).event
+        return event
+
+    def get_start_time(self):
+        year = int(self.kwargs.get('year'))
+        month = int(self.kwargs.get('month'))
+        day = int(self.kwargs.get('day'))
+        hours, minutes = map(int, self.kwargs.get('time').split(':'))
+        return datetime(year=year, month=month, day=day, hour=hours, minute=minutes)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        uuid = self.kwargs.get("uuid")
+        event = self.get_event()
+        context['event'] = event
+        context['user'] = event.owner
+        context['uuid'] = uuid
+        context['start_time'] = self.get_start_time()
+        return context
+
+    def get_form(self, form_class=None):
+        form = super().get_form()
+        form.instance.event = self.get_event()
+        return form
+
+    def form_valid(self, form):
+        form.instance.start_time = self.get_start_time()
+        return super().form_valid(form)
+
+
 

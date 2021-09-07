@@ -1,22 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{{ username }}</h2>
-    <p>The schedule for {{ date }} </p>
-    {% if user.username == username %}
-        {% if schedule_list %}
-            <ul>
-            {% for event in schedule_list %}
-                <li>{{ event.event.title }} {{ event.start_time }} - {{ event.end_time }} </li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p>No events are scheduled for this date.</p>
+    {% if username %}
+        <h2>{{ username }}</h2>
+        <p>The schedule for {{ date }} </p>
+        {% if user.username == username %}
+            {% if schedule_list %}
+                <ul>
+                {% for event in schedule_list %}
+                    <li>{{ event.event.title }} {{ event.start_time }} - {{ event.end_time }} </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No events are scheduled for this date.</p>
+            {% endif %}
+            <p><a href="{% url "events" user.username %}">Created templates for events</a></p>
         {% endif %}
-        <p><a href="{% url "events" user.username %}">Created templates for events</a></p>
+        <p><a href="{% url "calendar_redirect" username=username %}">Calendar</a></p>
+    {% elif invite %}
+        <p>{{ invite.event.owner.username }}'s schedule for {{ date }} </p>
+        <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
     {% endif %}
-
-    <p><a href="{% url "calendar_redirect" username=username %}">Calendar</a></p>
     <table>
         <tr>
             <th>Time</th>
@@ -32,14 +36,20 @@
                 </td>
             {% else %}
                 <td>
-                    {% if not event_slug %}
-                        <a href="{% url "schedule_event" username=username %}">
-                            {{ i|time:"H:i" }}
-                        </a>
-                    {% else %}
-                        <a href="{% url "event_schedule_form" username=username event_slug=event_slug year=date.year  month=date|date:"m" day=date|date:"d" time=i|time:"H:i" %}">
-                            {{ i|time:"H:i" }}
-                        </a>
+                    {% if username %}
+                        {% if not event_slug %}
+                            <a href="{% url "schedule_event_form" username=username year=date.year  month=date|date:"m" day=date|date:"d" time=i|time:"H:i" %}">
+                                {{ i|time:"H:i" }}
+                            </a>
+                        {% else %}
+                            <a href="{% url "event_schedule_form" username=username event_slug=event_slug year=date.year  month=date|date:"m" day=date|date:"d" time=i|time:"H:i" %}">
+                                {{ i|time:"H:i" }}
+                            </a>
+                        {% endif %}
+                    {% elif invite %}
+                        <a href="{% url "schedule_as_guest_form" uuid=invite.uuid year=date.year  month=date|date:"m" day=date|date:"d" time=i|time:"H:i" %}">
+                                {{ i|time:"H:i" }}
+                            </a>
                     {% endif %}
                 </td>
                 <td></td>

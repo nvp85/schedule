@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
-    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate
+    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest
 
 
 
@@ -25,6 +25,33 @@ urlpatterns = [
     # Authorization
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/registration', SignUp.as_view(), name='signup'),
+
+    # Schedule as a guest with an invitation link
+    re_path(
+        r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})$',
+        CalendarRedirectView.as_view(),
+        name='guest_calendar_redirect'
+    ),
+    re_path(
+        r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})/'
+        r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})$',
+        CalendarView.as_view(),
+        name='guest_calendar'
+    ),
+
+    re_path(
+        r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})/'
+        r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})$',
+        ScheduleView.as_view(),
+        name='schedule_as_guest'
+    ),
+
+    re_path(
+        r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})/'
+        r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<time>[0-5][0-9]:[0-5][0-9])$',
+        ScheduleAsGuest.as_view(),
+        name='schedule_as_guest_form'
+    ),
 
     # Calendar view
     re_path(r'^(?P<username>[\-\.\w]+)/$', CalendarRedirectView.as_view(), name='calendar_redirect'),
@@ -56,6 +83,12 @@ urlpatterns = [
         r'^(?P<username>[\-\.\w]+)/schedule_event$',
         ScheduleCreate.as_view(),
         name='schedule_event'
+    ),
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/schedule_event/'
+        r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<time>[0-5][0-9]:[0-5][0-9])$',
+        ScheduleCreate.as_view(),
+        name='schedule_event_form'
     ),
 
     # Individual Event edit/delete/schedule/create an Invitation link
@@ -101,6 +134,8 @@ urlpatterns = [
         InvitationCreate.as_view(),
         name='invitation_create'
     ),
+
+
 
     path('', Home.as_view(), name='home'),
 ]

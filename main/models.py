@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db.models import F
 from django.template.defaultfilters import slugify
+from main.utils import make_utc
 
 
 
@@ -57,7 +58,7 @@ class Invitation(models.Model):
 
 class Schedule(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(default=datetime.datetime.now())
+    start_time = models.DateTimeField(default=make_utc(datetime.datetime.now()))
     notes = models.TextField(blank=True)
 
     @property

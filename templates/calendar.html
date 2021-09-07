@@ -1,8 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    {% if invite %}
+        <p>{{ user }}</p>
+    <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
+    {% else %}
     <h2>{{ username }}</h2>
     <p><a href="{% url "events" username=user.username %}">Manage</a> templates for Events.</p>
+    {% endif %}
     <h3>Schedule for {{ year }}, {{ month_name }}</h3>
     {% if calendar %}
         <table>
@@ -25,8 +30,12 @@
                                 <a href="{% url "event_schedule" username=username year=year month=month day=day.0|stringformat:"02d" event_slug=event_slug %}">
                                 {{ day.0 }}
                                 </a>
-                            {% else %}
+                            {% elif username %}
                                 <a href="{% url "schedule" username=username year=year month=month day=day.0|stringformat:"02d" %}">
+                                    {{ day.0 }}
+                                </a>
+                            {% elif invite %}
+                                <a href="{% url "schedule_as_guest" uuid=invite.uuid year=year month=month day=day.0|stringformat:"02d"%}">
                                     {{ day.0 }}
                                 </a>
                             {% endif %}
