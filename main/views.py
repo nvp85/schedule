@@ -5,15 +5,16 @@ from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.list import ListView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import F
 from datetime import date
 from datetime import datetime, timedelta
 import calendar
-from main.utils import make_utc
 import pytz
 from .models import Schedule, Event, Invitation
+from main.utils import make_utc, get_invite_or_403
 
 
 class Home(TemplateView):
@@ -26,7 +27,7 @@ class SignUp(CreateView):
     template_name = 'registration/signup.html'
 
 
-class EventView(ListView):
+class EventView(LoginRequiredMixin, ListView):
     template_name = 'events.html'
     context_object_name = 'event_list'
 
@@ -46,11 +47,7 @@ class CalendarRedirectView(RedirectView):
                                 kwargs=dict(username=kwargs['username'], event_slug=kwargs['event_slug'], year=year,
                                             month=month))
         if kwargs.get('uuid'):
-            invite = get_object_or_404(Invitation, uuid=kwargs['uuid'])
-            # just to check if the Invitation is valid # TODO: it should be in the model i guess or in form_valid
-            if invite.expiration_time < now or invite.uses_counter >= invite.max_number_of_uses:
-                # the invite is not valid
-                return reverse_lazy('login')  # TODO: change it to more informative page
+            invite = get_invite_or_403(kwargs['uuid'])
             return reverse_lazy('guest_calendar',
                                 kwargs=dict(uuid=kwargs['uuid'], year=year, month=month))
         return reverse_lazy('calendar', kwargs=dict(username=kwargs['username'], year=year, month=month))
@@ -66,8 +63,7 @@ class CalendarView(TemplateView):
             context['user'] = user
             context['event_slug'] = kwargs.get('event_slug')
         if kwargs.get('uuid'):
-            invite = get_object_or_404(Invitation, uuid=kwargs['uuid'])
-            context['invite'] = invite
+            context['invite'] = get_invite_or_403(kwargs['uuid'])
         context['calendar'] = calendar.Calendar(firstweekday=6).itermonthdays2(int(kwargs['year']), int(kwargs['month']))
         context['month_name'] = calendar.month_name[int(kwargs['month'])]
         return context
@@ -83,7 +79,7 @@ class ScheduleView(ListView):
         start_time = timezone.make_aware(datetime.combine(day, datetime.max.time()))
         q = []
         if self.kwargs.get('uuid'):
-            invite = get_object_or_404(Invitation, uuid=self.kwargs['uuid'])
+            invite = get_invite_or_403(self.kwargs['uuid'])
             q = Schedule.objects.filter(
                 event__owner=invite.event.owner,
                 start_time__gte=end_time - F('event__duration'),
@@ -140,7 +136,7 @@ class ScheduleView(ListView):
         return context
 
 
-class ScheduleCreate(CreateView):
+class ScheduleCreate(LoginRequiredMixin, CreateView):
     model = Schedule
     fields = ['event', 'start_time', 'notes']
     template_name = 'schedule_event.html'
@@ -170,7 +166,7 @@ class ScheduleCreate(CreateView):
         return context
 
 
-class EventCreate(CreateView):
+class EventCreate(LoginRequiredMixin, CreateView):
     model = Event
     fields = ['title', 'duration']
     template_name = 'event_template.html'
@@ -198,18 +194,18 @@ class GetEventMixin:
         return reverse_lazy('events', kwargs=dict(username=self.request.user.username))
 
 
-class EventDelete(GetEventMixin, DeleteView):
+class EventDelete(LoginRequiredMixin, GetEventMixin, DeleteView):
     model = Event
     template_name = 'event_delete.html'
 
 
-class EventUpdate(GetEventMixin, UpdateView):
+class EventUpdate(LoginRequiredMixin, GetEventMixin, UpdateView):
     model = Event
     fields = ['title', 'duration']
     template_name = 'event_template.html'
 
 
-class InvitationCreate(CreateView):
+class InvitationCreate(LoginRequiredMixin, CreateView):
     model = Invitation
     fields = ['max_number_of_uses', 'expiration_time']
     template_name = 'invitation_create.html'
@@ -236,10 +232,10 @@ class ScheduleAsGuest(CreateView):
     fields = ['notes',]
     template_name = 'schedule_event.html'
 
-    def get_event(self):
+    def get_invitation(self):
         uuid = self.kwargs.get("uuid")
-        event = get_object_or_404(Invitation, uuid=uuid).event
-        return event
+        invite = get_invite_or_403(uuid)
+        return invite
 
     def get_start_time(self):
         year = int(self.kwargs.get('year'))
@@ -251,7 +247,7 @@ class ScheduleAsGuest(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         uuid = self.kwargs.get("uuid")
-        event = self.get_event()
+        event = self.get_invitation().event
         context['event'] = event
         context['user'] = event.owner
         context['uuid'] = uuid
@@ -260,11 +256,12 @@ class ScheduleAsGuest(CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form()
-        form.instance.event = self.get_event()
+        form.instance.event = self.get_invitation().event
         return form
 
     def form_valid(self, form):
         form.instance.start_time = self.get_start_time()
+        self.get_invitation().get_used()
         return super().form_valid(form)
 
 

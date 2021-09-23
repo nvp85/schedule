@@ -9,7 +9,6 @@ from django.template.defaultfilters import slugify
 from main.utils import make_utc
 
 
-
 class Event(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.TextField()
@@ -54,6 +53,17 @@ class Invitation(models.Model):
         username = self.event.owner.username
         event_slug = self.event.slug
         return reverse('invitation_create', kwargs={'username': username, 'event_slug': event_slug})
+
+    def get_used(self):
+        self.uses_counter += 1
+        self.save()
+
+    @property
+    def is_active(self):
+        now = make_utc(datetime.datetime.now())
+        if make_utc(self.expiration_time) > now and self.uses_counter < self.max_number_of_uses:
+            return True
+        return False
 
 
 class Schedule(models.Model):
