@@ -5,7 +5,7 @@ from django.views.generic.base import TemplateView, RedirectView
 from django.views.generic.list import ListView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import F
@@ -15,6 +15,19 @@ import calendar
 import pytz
 from .models import Schedule, Event, Invitation
 from main.utils import make_utc, get_invite_or_403
+
+
+class TestOwnershipMixin(UserPassesTestMixin):
+
+    def test_func(self):
+        username = self.kwargs.get('username')
+        uuid = self.kwargs.get('uuid')
+        if username:
+            if self.request.user.is_authenticated and self.request.user.username == self.kwargs.get("username"):
+                return True
+        elif uuid:
+            return True
+        return False
 
 
 class Home(TemplateView):
@@ -35,7 +48,7 @@ class EventView(LoginRequiredMixin, ListView):
         return Event.objects.filter(owner=self.request.user)
 
 
-class CalendarRedirectView(RedirectView):
+class CalendarRedirectView(TestOwnershipMixin, RedirectView):
     is_permanent = True
 
     def get_redirect_url(self, *args, **kwargs):
@@ -53,7 +66,7 @@ class CalendarRedirectView(RedirectView):
         return reverse_lazy('calendar', kwargs=dict(username=kwargs['username'], year=year, month=month))
 
 
-class CalendarView(TemplateView):
+class CalendarView(TestOwnershipMixin, TemplateView):
     template_name = "calendar.html"
 
     def get_context_data(self, **kwargs):
@@ -69,7 +82,7 @@ class CalendarView(TemplateView):
         return context
 
 
-class ScheduleView(ListView):
+class ScheduleView(TestOwnershipMixin, ListView):
     template_name = 'schedule.html'
     context_object_name = 'schedule_list'
 
@@ -136,7 +149,7 @@ class ScheduleView(ListView):
         return context
 
 
-class ScheduleCreate(LoginRequiredMixin, CreateView):
+class ScheduleCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
     model = Schedule
     fields = ['event', 'start_time', 'notes']
     template_name = 'schedule_event.html'
@@ -166,7 +179,7 @@ class ScheduleCreate(LoginRequiredMixin, CreateView):
         return context
 
 
-class EventCreate(LoginRequiredMixin, CreateView):
+class EventCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
     model = Event
     fields = ['title', 'duration']
     template_name = 'event_template.html'
@@ -194,18 +207,18 @@ class GetEventMixin:
         return reverse_lazy('events', kwargs=dict(username=self.request.user.username))
 
 
-class EventDelete(LoginRequiredMixin, GetEventMixin, DeleteView):
+class EventDelete(LoginRequiredMixin, GetEventMixin, TestOwnershipMixin, DeleteView):
     model = Event
     template_name = 'event_delete.html'
 
 
-class EventUpdate(LoginRequiredMixin, GetEventMixin, UpdateView):
+class EventUpdate(LoginRequiredMixin, GetEventMixin, TestOwnershipMixin, UpdateView):
     model = Event
     fields = ['title', 'duration']
     template_name = 'event_template.html'
 
 
-class InvitationCreate(LoginRequiredMixin, CreateView):
+class InvitationCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
     model = Invitation
     fields = ['max_number_of_uses', 'expiration_time']
     template_name = 'invitation_create.html'
