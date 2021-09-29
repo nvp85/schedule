@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
-    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest
+    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess
 
 
 
@@ -51,6 +51,12 @@ urlpatterns = [
         r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<time>[0-5][0-9]:[0-5][0-9])$',
         ScheduleAsGuest.as_view(),
         name='schedule_as_guest_form'
+    ),
+
+    re_path(
+        r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})/success$',
+        ScheduleAsGuestSuccess.as_view(),
+        name='schedule_as_guest_success'
     ),
 
     # Calendar view

@@ -274,8 +274,21 @@ class ScheduleAsGuest(CreateView):
 
     def form_valid(self, form):
         form.instance.start_time = self.get_start_time()
-        self.get_invitation().get_used()
+        invite = self.get_invitation()
+        invite.get_used()
+        form.instance.invite_used = invite
         return super().form_valid(form)
 
+    def get_success_url(self):
+        return reverse_lazy("schedule_as_guest_success", kwargs=dict(uuid=self.kwargs.get('uuid')))
+
+
+class ScheduleAsGuestSuccess(TemplateView):
+    template_name = 'schedule_as_guest_success.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['scheduled_event'] = get_object_or_404(Schedule, invite_used__uuid=kwargs.get('uuid'))
+        return context
 
 

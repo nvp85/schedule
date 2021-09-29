@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db.models import F
 from django.template.defaultfilters import slugify
+from django.utils import timezone
 from main.utils import make_utc
 
 
@@ -20,7 +21,7 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self): # maybe it's redundant
+    def get_absolute_url(self):
         username = self.owner.username
         return reverse('events', kwargs={'username': username})
 
@@ -47,7 +48,7 @@ class Invitation(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     uses_counter = models.IntegerField(default=0)
     max_number_of_uses = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    expiration_time = models.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=7))
+    expiration_time = models.DateTimeField(default=make_utc(timezone.now())+datetime.timedelta(days=7))
 
     def get_absolute_url(self):
         username = self.event.owner.username
@@ -68,8 +69,9 @@ class Invitation(models.Model):
 
 class Schedule(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(default=make_utc(datetime.datetime.now()))
+    start_time = models.DateTimeField(default=make_utc(timezone.now()))
     notes = models.TextField(blank=True)
+    invite_used = models.ForeignKey(Invitation, null=True, default=None, editable=False, on_delete=models.SET_NULL)
 
     @property
     def end_time(self):

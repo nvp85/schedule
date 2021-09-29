@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    <p>You have scheduled an event successfully!</p>
+    <p>{{ scheduled_event.event.title }}</p>
+    <p>{{ scheduled_event.start_time }}</p>
+{% endblock %}
