@@ -72,6 +72,7 @@ class Schedule(models.Model):
     start_time = models.DateTimeField(default=make_utc(timezone.now()))
     notes = models.TextField(blank=True)
     invite_used = models.ForeignKey(Invitation, null=True, default=None, editable=False, on_delete=models.SET_NULL)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     @property
     def end_time(self):
