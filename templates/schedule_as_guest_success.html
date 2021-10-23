@@ -3,6 +3,7 @@
 
 {% block content %}
     <p>You have scheduled an event successfully!</p>
-    <p>{{ scheduled_event.event.title }}</p>
-    <p>{{ scheduled_event.start_time }}</p>
+    <p></p>
+    <p>{{ scheduled_event.event.title }} with user {{ scheduled_event.event.owner.username }}</p>
+    <p>Start time: {{ scheduled_event.start_time }}, Duration: {{ scheduled_event.event.duration }}</p>
 {% endblock %}

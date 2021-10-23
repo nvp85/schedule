@@ -1,7 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render, redirect
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.base import TemplateView, RedirectView, View
 from django.views.generic.list import ListView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import calendar
 import pytz
 from .models import Schedule, Event, Invitation
-from main.utils import make_utc, get_invite_or_403
+from main.utils import get_invite_or_403
 
 
 class TestOwnershipMixin(UserPassesTestMixin):
@@ -88,8 +88,9 @@ class ScheduleView(TestOwnershipMixin, ListView):
 
     def get_queryset(self):
         day = date(int(self.kwargs['year']), int(self.kwargs['month']), int(self.kwargs['day']))
-        end_time = timezone.make_aware(datetime.combine(day, datetime.min.time()))
-        start_time = timezone.make_aware(datetime.combine(day, datetime.max.time()))
+        # here timezone is current, from the session. transfer it to utc
+        end_time = timezone.make_aware(datetime.combine(day, datetime.min.time())).astimezone(pytz.utc)
+        start_time = timezone.make_aware(datetime.combine(day, datetime.max.time())).astimezone(pytz.utc)
         q = []
         if self.kwargs.get('uuid'):
             invite = get_invite_or_403(self.kwargs['uuid'])
@@ -109,9 +110,11 @@ class ScheduleView(TestOwnershipMixin, ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         day = date(int(self.kwargs['year']), int(self.kwargs['month']), int(self.kwargs['day']))
+        # this day is supposed to be in the current timezone, as user/guest chooses it
         context['date'] = day
-        day_begins = make_utc(datetime.combine(day, datetime.min.time()))
-        day_ends = make_utc(datetime.combine(day, datetime.max.time()))
+        # current timezone to utc
+        day_begins = timezone.make_aware(datetime.combine(day, datetime.min.time())).astimezone(pytz.utc)
+        day_ends = timezone.make_aware(datetime.combine(day, datetime.max.time())).astimezone(pytz.utc)
         if self.kwargs.get("username"):
             context['username'] = self.kwargs['username']
             context['event_slug'] = self.kwargs.get('event_slug')
@@ -123,18 +126,18 @@ class ScheduleView(TestOwnershipMixin, ListView):
         q = context['schedule_list']
         context['schedule_dict'] = {}
         for event in q:
-            begin = max(
-                timezone.make_aware(
+            # max between event's start time and day's start time without minutes
+            event_start_time = event.start_time.astimezone(pytz.utc)
+            event_start_hour = timezone.make_aware(
                     datetime(
-                        year=event.start_time.year,
-                        month=event.start_time.month,
-                        day=event.start_time.day,
-                        hour=event.start_time.hour
+                        year=event_start_time.year,
+                        month=event_start_time.month,
+                        day=event_start_time.day,
+                        hour=event_start_time.hour
                     ),
                     timezone=pytz.utc
-                ),
-                day_begins
-            )
+                )
+            begin = max(event_start_hour, day_begins)
             delta = timedelta(
                 minutes=event.start_time.minute,
                 seconds=event.start_time.second,
@@ -161,13 +164,14 @@ class ScheduleCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
             month = int(self.kwargs.get('month'))
             day = int(self.kwargs.get('day'))
             hours, minutes = map(int, self.kwargs.get('time').split(':'))
-            initial['start_time'] = datetime(
+            # this time in current user's tz
+            initial['start_time'] = timezone.make_aware(datetime(
                 year=year,
                 month=month,
                 day=day,
                 hour=hours,
                 minute=minutes
-            )
+            ))
         slug = self.kwargs.get('event_slug')
         if slug:
             initial['event'] = get_object_or_404(Event, slug=slug)
@@ -251,11 +255,12 @@ class ScheduleAsGuest(CreateView):
         return invite
 
     def get_start_time(self):
+        # in user's time zone
         year = int(self.kwargs.get('year'))
         month = int(self.kwargs.get('month'))
         day = int(self.kwargs.get('day'))
         hours, minutes = map(int, self.kwargs.get('time').split(':'))
-        return datetime(year=year, month=month, day=day, hour=hours, minute=minutes)
+        return timezone.make_aware(datetime(year=year, month=month, day=day, hour=hours, minute=minutes))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -270,10 +275,10 @@ class ScheduleAsGuest(CreateView):
     def get_form(self, form_class=None):
         form = super().get_form()
         form.instance.event = self.get_invitation().event
+        form.instance.start_time = self.get_start_time()
         return form
 
     def form_valid(self, form):
-        form.instance.start_time = self.get_start_time()
         invite = self.get_invitation()
         invite.get_used()
         form.instance.invite_used = invite
@@ -291,4 +296,14 @@ class ScheduleAsGuestSuccess(TemplateView):
         context['scheduled_event'] = get_object_or_404(Schedule, uuid=kwargs.get('uuid'))
         return context
 
+
+class SetTimezoneGuestView(View):
+    def get(self, request, **kwargs):
+        context = {'timezones': pytz.common_timezones, 'uuid': kwargs.get('uuid')}
+        return render(request, 'set_timezone.html', context)
+
+    def post(self, request, **kwargs):
+        request.session['django_timezone'] = request.POST['timezone']
+        invite = get_invite_or_403(kwargs['uuid'])
+        return redirect('guest_calendar_redirect', uuid=kwargs.get('uuid'))
 

@@ -13,6 +13,9 @@
 </head>
 <body>
     <p><a href="{% url 'home' %}">Home</a></p>
+    {% load tz %}
+    {% get_current_timezone as TIME_ZONE %}
+    <p>{{ TIME_ZONE }}</p>
     {% block content %}
     {% endblock %}
 </body>

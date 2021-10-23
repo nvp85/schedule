@@ -16,8 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
-    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess
-
+    ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess,\
+    SetTimezoneGuestView
 
 
 urlpatterns = [
@@ -32,6 +32,14 @@ urlpatterns = [
         CalendarRedirectView.as_view(),
         name='guest_calendar_redirect'
     ),
+
+    # choosing timezone link for a guest
+    re_path(
+        r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})/timezone$',
+        SetTimezoneGuestView.as_view(),
+        name='set_timezone_guest'
+    ),
+
     re_path(
         r'^invite/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})/'
         r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})$',

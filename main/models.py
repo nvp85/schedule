@@ -8,6 +8,11 @@ from django.db.models import F
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from main.utils import make_utc
+import pytz
+
+
+def get_default_time():
+    return timezone.now()+datetime.timedelta(days=14)
 
 
 class Event(models.Model):
@@ -48,7 +53,7 @@ class Invitation(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     uses_counter = models.IntegerField(default=0)
     max_number_of_uses = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    expiration_time = models.DateTimeField(default=make_utc(timezone.now())+datetime.timedelta(days=7))
+    expiration_time = models.DateTimeField(default=get_default_time)
 
     def get_absolute_url(self):
         username = self.event.owner.username
@@ -61,7 +66,7 @@ class Invitation(models.Model):
 
     @property
     def is_active(self):
-        now = make_utc(datetime.datetime.now())
+        now = timezone.now()
         if make_utc(self.expiration_time) > now and self.uses_counter < self.max_number_of_uses:
             return True
         return False
@@ -69,7 +74,7 @@ class Invitation(models.Model):
 
 class Schedule(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(default=make_utc(timezone.now()))
+    start_time = models.DateTimeField(default=timezone.now)
     notes = models.TextField(blank=True)
     invite_used = models.ForeignKey(Invitation, null=True, default=None, editable=False, on_delete=models.SET_NULL)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -91,11 +96,11 @@ class Schedule(models.Model):
 
     def clean(self):
         cleaned_data = super().clean()
-        start = self.start_time
-        end = self.end_time
+        start = self.start_time.astimezone(pytz.utc)
+        end = self.end_time.astimezone(pytz.utc)
         conflicting_events = Schedule.objects.filter(
-            start_time__lt=end,
-            start_time__gt=start-F('event__duration'),
+            start_time__lte=end,
+            start_time__gte=start-F('event__duration'),
             event__owner=self.event.owner,
         )
         if conflicting_events.exists():
