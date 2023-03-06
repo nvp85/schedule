@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Schedule</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <style>
         table, th, td {
             border: 1px solid black;
@@ -12,11 +13,13 @@
     </style>
 </head>
 <body>
+    <section class="section">
     <p><a href="{% url 'home' %}">Home</a></p>
     {% load tz %}
     {% get_current_timezone as TIME_ZONE %}
     <p>{{ TIME_ZONE }}</p>
     {% block content %}
     {% endblock %}
+    </section>
 </body>
 </html>
