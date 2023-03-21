@@ -14,12 +14,18 @@
 </head>
 <body>
     <section class="section">
-    <p><a href="{% url 'home' %}">Home</a></p>
-    {% load tz %}
-    {% get_current_timezone as TIME_ZONE %}
-    <p>{{ TIME_ZONE }}</p>
-    {% block content %}
-    {% endblock %}
+        <div class="columns">
+            <div class="column">
+                <div class="box">
+                <p><a href="{% url 'home' %}">Home</a></p>
+                {% load tz %}
+                {% get_current_timezone as TIME_ZONE %}
+                <p>{{ TIME_ZONE }}</p>
+                {% block content %}
+                {% endblock %}
+                </div>
+            </div>
+        </div>
     </section>
 </body>
 </html>
