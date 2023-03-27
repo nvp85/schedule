@@ -5,6 +5,10 @@ Application for creating and managing a daily schedule. Also allows a user to cr
 ## General info
 
 ## Technologies
+Django 3.2+
+Python 3.9
+django-environ
+pytz
 
 ## Launch
 - Clone repository
