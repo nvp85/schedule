@@ -1,8 +1,8 @@
 # schedule
 
 ## Introduction
-Application for creating and managing a daily schedule. Also allows a user to create invitations for other people so they could book a meeting with the user.
-## General info
+This is an application for creating and managing a daily schedule. Also allows a user to create invitations for other people so they could book a meeting with the user.
+An invitation is a link a user can create in their profile and send to another person, it will be generated using UUID. The person then will use the link to schedule a meeting with the user provided the link.    
 
 ## Technologies
 Django 3.2+
