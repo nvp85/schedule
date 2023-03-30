@@ -11,12 +11,34 @@ django-environ
 pytz
 
 ## Launch
-- Clone repository
+- Clone the repository
+```
+$ git clone https://github.com/nvp85/schedule
+```
 - Set up and activate virtual environment
+```
+$ python -m venv venv
+$ . venv/Scripts/activate
+```
 - Install requirements.txt
-- Create a database schedule_db
-- Create a role schedule_user, make the role an owner of the database 
+```
+$ pip install -r requirements.txt
+```
+- Create a role schedule_user 
+```
+postgres=# CREATE ROLE schedule_user;
+```
+- Create a database schedule_db, make the role schedule_user an owner of the database
+```
+postgres=# CREATE DATABASE schedule_db OWNER schedule_user;
+```
 - Generate a new django secret key
 - Create a .env file (handled by django-environ) and put your postgres credentials and the django secret key into it
-- Make migrations
+- Migrate
+```
+$ python manage.py migrate
+```
 - Run the development webserver
+```
+$ python manage.py runserver
+```
