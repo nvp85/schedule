@@ -6,8 +6,11 @@ An invitation is a link a user can create in their profile and send to another p
 
 ## Technologies
 Django 3.2+
+
 Python 3.9
+
 django-environ
+
 pytz
 
 ## Launch
