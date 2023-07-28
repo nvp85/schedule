@@ -4,8 +4,6 @@
     {% if invite %}
         <p>{{ user }}</p>
     <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
-    {% else %}
-    <p><a href="{% url "events" username=user.username %}">Manage</a> templates for Events.</p>
     {% endif %}
     <h3>Schedule for {{ month_name }}, {{ year }}</h3>
     <a>previous month</a>

@@ -16,7 +16,7 @@
     <section class="section">
         <div class="columns is-mobile is-centered">
             <div class="column is-7">
-                <nav class="navbar has-background-primary-light" role="navigation" aria-label="main navigation">
+                <nav class="navbar has-background-primary-light" role="navigation">
                     <div class="navbar-brand has-background-primary">
                         <p class="navbar-item is-size-4"><strong class="has-text-white">Schedule</strong></p>
                     </div>
@@ -25,7 +25,13 @@
                             <a class="navbar-item" href="{% url 'home' %}">Home</a>
                             {% if user.is_authenticated %}
                             <a class="navbar-item" href="{% url 'calendar_redirect' user.username %}">Calendar</a>
-                            <a class="navbar-item" href="{% url 'events' user.username %}">Events</a>
+                            <div class="navbar-item has-dropdown is-hoverable">
+                                <a class="navbar-link">Events</a>
+                                <div class="navbar-dropdown">
+                                    <a class="navbar-item" href="{% url 'events' user.username %}">Events list</a>
+                                    <a class="navbar-item" href="{% url 'create_event' user.username %}">Create new event</a>
+                                </div>
+                            </div>
                             {% endif %}
                         </div>
                         <div class="navbar-end">

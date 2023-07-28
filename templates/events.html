@@ -41,7 +41,4 @@
     {% else %}
         <p>No events are created.</p>
     {% endif %}
-    <p><a href="{% url 'calendar_redirect' username=user.username %}">Schedule</a></p>
-    <p><a href="{% url "create_event" username=user.username %}">Create a new event template</a></p>
-
 {% endblock %}
