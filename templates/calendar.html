@@ -5,10 +5,11 @@
         <p>{{ user }}</p>
     <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
     {% else %}
-    <h2>{{ username }}</h2>
     <p><a href="{% url "events" username=user.username %}">Manage</a> templates for Events.</p>
     {% endif %}
-    <h3>Schedule for {{ year }}, {{ month_name }}</h3>
+    <h3>Schedule for {{ month_name }}, {{ year }}</h3>
+    <a>previous month</a>
+    <a>next month</a>
     {% if calendar %}
         <table>
             <tr>

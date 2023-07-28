@@ -16,23 +16,32 @@
     <section class="section">
         <div class="columns is-mobile is-centered">
             <div class="column is-7">
-                <nav class="navbar has-background-primary-light">
+                <nav class="navbar has-background-primary-light" role="navigation" aria-label="main navigation">
                     <div class="navbar-brand has-background-primary">
                         <p class="navbar-item is-size-4"><strong class="has-text-white">Schedule</strong></p>
                     </div>
                     <div class="navbar-menu">
                         <div class="navbar-start">
                             <a class="navbar-item" href="{% url 'home' %}">Home</a>
+                            {% if user.is_authenticated %}
+                            <a class="navbar-item" href="{% url 'calendar_redirect' user.username %}">Calendar</a>
+                            <a class="navbar-item" href="{% url 'events' user.username %}">Events</a>
+                            {% endif %}
                         </div>
                         <div class="navbar-end">
-                            <div class="navbar-item">
-                                <a class="button is-primary">
-                                    <strong>Sign up</strong>
-                                </a>
-                                <a class="button">
-                                    Log in
-                                </a>
-                            </div>
+                            {% if user.is_authenticated %}
+                                <p class="navbar-item">You are logged in as {{ user.username }}</p>
+                                <p class="navbar-item"><a class="button is-primary" href="{% url 'logout' %}">log out</a></p>
+                            {% else %}
+                                <div class="navbar-item">
+                                    <a class="button is-primary" href="{% url 'signup' %}">
+                                        <strong>Sign up</strong>
+                                    </a>
+                                    <a class="button" href="{% url 'login' %}">
+                                        Log in
+                                    </a>
+                                </div>
+                            {% endif %}     
                         </div>
                     </div>
                 </nav>
