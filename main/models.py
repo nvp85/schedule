@@ -104,5 +104,5 @@ class Schedule(models.Model):
             event__owner=self.event.owner,
         )
         if conflicting_events.exists():
-            raise ValidationError('Events overlap in time!')
+            raise ValidationError('Events overlap in time! Please choose different start time.')
         return cleaned_data
