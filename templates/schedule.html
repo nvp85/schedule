@@ -14,14 +14,12 @@
             {% else %}
                 <p>No events are scheduled for this date.</p>
             {% endif %}
-            <p><a href="{% url "events" user.username %}">Created templates for events</a></p>
         {% endif %}
-        <p><a href="{% url "calendar_redirect" username=username %}">Calendar</a></p>
     {% elif invite %}
         <p>{{ invite.event.owner.username }}'s schedule for {{ date }} </p>
         <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
     {% endif %}
-    <table>
+    <table class="table is-bordered">
         <tr>
             <th>Time</th>
             <th>Event</th>
