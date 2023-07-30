@@ -4,8 +4,8 @@
 
     <form method="post">
         {% csrf_token %}
-        <p>Are you sure you want to delete "{{ object }}"?</p>
-        <input type="submit" value="Confirm">
+        <div class="field"><p class="is-size-4">Are you sure you want to delete "{{ object }}"?</p></div>
+        <input type="submit" value="Confirm" class="button is-danger">
     </form>
 
 {% endblock %}

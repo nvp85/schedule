@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
-
+{% load filters %}
 
 {% block content %}
+<div class="columns">
+    <div class="column is-narrow">
     {% if list_of_links %}
         <ul>
             {% for el in list_of_links %}
@@ -10,11 +12,18 @@
             {% endfor %}
         </ul>
     {% endif %}
-    <p>Create a new invitation link for the event {{ event.slug }}, {{ event.duration }}</p>
+    <p class="is-size-4">Create a new invitation link for the event {{ event.slug }}, {{ event.duration }}</p>
     <form method="post" action="">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="submit">
+        {% for field in form %}
+        <div class="field">
+            <div class="label" for="{{ field.id_for_label }}">{{ field.label }}</div>
+            {{ field.errors }}
+            <div class="control">{{ field|add_class:"input" }}</div>
+        </div>
+        {% endfor %}
+        <input type="submit" value="submit" class="button is-primary">
     </form>
-
+    </div>
+</div>
 {% endblock %}
