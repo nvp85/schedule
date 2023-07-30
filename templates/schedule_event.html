@@ -3,15 +3,24 @@
 
 {% block content %}
     {% if uuid %}
-
-        <p>Schedule an event {{ event.title }}, {{ event.duration }} with {{ user.username }}</p>
-        <p>Starting time: {{ start_time }}</p>
-        <form method="post" action="">
+    <div class="columns">
+        <form method="post" action="" class="column is-narrow">
             {% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit" value="submit">
+            <p>Schedule an event {{ event.title }}, {{ event.duration }} with {{ user.username }}</p>
+            <p>Starting time: {{ start_time }}</p>
+            {% for err in form.non_field_errors %}
+                <p class="has-text-danger">{{ err }}</p>
+            {% endfor %}
+            <div class="field">
+                <label class="label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                {{ form.notes.errors }}
+                <div class="control">
+                {{ form.notes|add_class:"textarea" }}
+                </div>
+            </div>
+            <input type="submit" value="submit" class="button is-primary">
         </form>
-
+    </div>
     {% else %}
     <div class="columns">
         <form method="post" action="" class="column is-narrow">
@@ -38,7 +47,7 @@
                 <label class="label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
                 {{ form.notes.errors }}
                 <div class="control">
-                    {{ form.notes|add_class:"text" }}
+                    {{ form.notes|add_class:"textarea" }}
                 </div>
             </div>
             <input type="submit" value="submit" class="button is-primary">
