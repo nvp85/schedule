@@ -3,7 +3,11 @@
 {% block content %}
     {% load tz %}
     {% get_current_timezone as TIME_ZONE %}
+    {% if not uuid %}
+    <form action="{% url 'set_timezone' %}" method="POST">
+    {% else %}
     <form action="{% url 'set_timezone_guest' uuid %}" method="POST">
+    {% endif %}
         {% csrf_token %}
         <label for="timezone" class="label">Time zone:</label>
         <div class="select">

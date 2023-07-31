@@ -13,6 +13,8 @@
     </style>
 </head>
 <body>
+    {% load tz %}
+    {% get_current_timezone as TIME_ZONE %}
     <section class="section">
         <div class="columns is-mobile is-centered">
             <div class="column is-7">
@@ -44,7 +46,7 @@
                         </div>
                         <div class="navbar-end">
                             {% if user.is_authenticated %}
-                                <p class="navbar-item">You are logged in as {{ user.username }}</p>
+                                <p class="navbar-item">{{ user.username }}, (<a href="{% url 'set_timezone' %}"> {{ TIME_ZONE }}</a>)</p>
                                 <p class="navbar-item"><a class="button is-primary" href="{% url 'logout' %}">log out</a></p>
                             {% else %}
                                 <div class="navbar-item">
@@ -60,9 +62,9 @@
                     </div>
                 </nav>
                 <div class="box">
-                    {% load tz %}
-                    {% get_current_timezone as TIME_ZONE %}
+                    {% if not user.is_authenticated %}
                     <p>Your current time zone is {{ TIME_ZONE }}.</p>
+                    {% endif %}
                     {% block content %}
                     {% endblock %}
                 </div>

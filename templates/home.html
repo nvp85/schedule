@@ -3,7 +3,7 @@
 {% block content %}
     {% if user.is_authenticated %}
         <p>Welcome back, <a href="{% url 'calendar_redirect' user.username %}">{{ user.username }}</a>.</p>
-        <p>Events, scheduled for today:</p>
+        <p>Today is {{ today|date }}</p>
     {% else %}
         <p>Please <a href="{% url 'login' %}">log in.</a></p>
         <p>Or <a href="{% url 'signup' %}">register</a> a new account.</p>

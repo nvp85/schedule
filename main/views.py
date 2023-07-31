@@ -34,6 +34,12 @@ class TestOwnershipMixin(UserPassesTestMixin):
 class Home(TemplateView):
     template_name = 'home.html'
 
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        today = timezone.now()
+        context['today'] = today
+        return context
+
 
 class SignUp(CreateView):
     form_class = UserCreationForm
@@ -318,3 +324,11 @@ class SetTimezoneGuestView(View):
         invite = get_invite_or_403(kwargs['uuid'])
         return redirect('guest_calendar_redirect', uuid=kwargs.get('uuid'))
 
+class SetTimezoneView(View):
+    def get(self, request, **kwargs):
+        context = {'timezones': pytz.common_timezones}
+        return render(request, 'set_timezone.html', context)
+
+    def post(self, request, **kwargs):
+        request.session['django_timezone'] = request.POST['timezone']
+        return redirect('home')

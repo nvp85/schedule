@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
     ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess,\
-    SetTimezoneGuestView
+    SetTimezoneGuestView, SetTimezoneView
 
 
 urlpatterns = [
@@ -26,6 +26,13 @@ urlpatterns = [
     # Authorization
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/registration', SignUp.as_view(), name='signup'),
+
+    # choosing timezone
+    re_path(
+        r'^timezone$',
+        SetTimezoneView.as_view(),
+        name='set_timezone'
+    ),
 
     # Schedule as a guest with an invitation link
     re_path(
