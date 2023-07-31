@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -31,14 +31,18 @@ class TestOwnershipMixin(UserPassesTestMixin):
         return False
 
 
-class Home(TemplateView):
-    template_name = 'home.html'
+class Home(RedirectView):
+    permanent = False
+    #template_name = 'home.html'
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        today = timezone.now()
-        context['today'] = today
-        return context
+    def get_redirect_url(self, *args: Any, **kwargs: Any):
+        if self.request.user.is_authenticated:
+            now = timezone.now()
+            year = f'{now.year:04d}'
+            month = f'{now.month:02d}'
+            day = f'{now.day:02d}'
+            return reverse_lazy('schedule', kwargs=dict(username=self.request.user.username, year=year, month=month, day=day))
+        return reverse_lazy('login')
 
 
 class SignUp(CreateView):
@@ -56,7 +60,7 @@ class EventView(LoginRequiredMixin, ListView):
 
 
 class CalendarRedirectView(TestOwnershipMixin, RedirectView):
-    is_permanent = True
+    is_permanent = False
 
     def get_redirect_url(self, *args, **kwargs):
         now = timezone.now()
