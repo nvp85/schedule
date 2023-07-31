@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -191,6 +192,11 @@ class EventCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'Create'
+        return context
 
 
 class GetEventMixin:
@@ -220,6 +226,11 @@ class EventUpdate(LoginRequiredMixin, GetEventMixin, TestOwnershipMixin, UpdateV
     model = Event
     fields = ['title', 'duration']
     template_name = 'event_template.html'
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['action'] = 'Update'
+        return context
 
 
 class InvitationCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
