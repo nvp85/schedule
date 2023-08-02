@@ -88,8 +88,14 @@ class CalendarView(TestOwnershipMixin, TemplateView):
             context['event_slug'] = kwargs.get('event_slug')
         if kwargs.get('uuid'):
             context['invite'] = get_invite_or_403(kwargs['uuid'])
-        context['calendar'] = calendar.Calendar(firstweekday=6).itermonthdays2(int(kwargs['year']), int(kwargs['month']))
-        context['month_name'] = calendar.month_name[int(kwargs['month'])]
+        month = int(kwargs['month'])
+        year = int(kwargs['year'])
+        context['calendar'] = calendar.Calendar(firstweekday=6).itermonthdays2(year, month)
+        context['month_name'] = calendar.month_name[month]
+        context['prev_month'] = f'{month-1:02d}' if month > 1 else '12'
+        context['prev_year'] = f'{year:04d}' if month > 1 else f'{year-1:04d}'
+        context['next_month'] = f'{month+1:02d}' if month < 12 else '01'
+        context['next_year'] = f'{year:04d}' if month < 12 else f'{year+1:04d}'
         return context
 
 
