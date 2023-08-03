@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional
+from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -269,6 +270,15 @@ class InvitationCreate(LoginRequiredMixin, TestOwnershipMixin, CreateView):
     def form_valid(self, form):
         form.instance.event = self.get_event()
         return super().form_valid(form)
+    
+
+class InvitationListView(LoginRequiredMixin, ListView):
+    model = Invitation
+    context_object_name = 'invites_list'
+    template_name = 'invitations_list.html'
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return Invitation.objects.filter(event__owner=self.request.user, expiration_time__gte=timezone.now())
 
 
 class ScheduleAsGuest(CreateView):

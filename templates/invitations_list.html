@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+{% if invites_list %}
+<h2>List of active invitation links</h2>
+<ul>
+    {% for el in invites_list %}
+    <li>{{ el.event.title }}, {{ el.event.duration }}, link: /invite/{{ el.uuid }},
+        used {{ el.uses_counter }}/{{ el.max_number_of_uses }}, expire: {{ el.expiration_time }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

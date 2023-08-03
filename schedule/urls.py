@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
     ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess,\
-    SetTimezoneGuestView, SetTimezoneView
+    SetTimezoneGuestView, SetTimezoneView, InvitationListView
 
 
 urlpatterns = [
@@ -127,6 +127,12 @@ urlpatterns = [
         EventUpdate.as_view(),
         name='event_update'
     ),
+
+    # Show all active invitation links
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/active_invitations$',
+        InvitationListView.as_view(),
+        name='active_invitations'),
 
     # Schedule an Event from event list
     re_path(
