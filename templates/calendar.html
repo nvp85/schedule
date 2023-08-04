@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
     {% if invite %}
         <p>{{ user }}</p>
     <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
     {% endif %}
     {% if user.is_authenticated %}
-    <h2 class="mb-2">
-        <a href="{% url 'calendar' username prev_year prev_month %}">previous month </a>
-        <span class="is-size-4">{{ month_name }}, {{ year }} </span>
-        <a href="{% url 'calendar' username next_year next_month %}"> next month</a>
+    <h2 class="mb-2 ">
+        <span class="is-size-4">{{ month_name }}, {{ year }}</span>
     </h2>
     {% endif %}
     {% if calendar %}
@@ -49,5 +47,9 @@
             {% endif %}
         {% endfor %}
         </table>
+        <div class="buttons has-addons">
+            <a class="button" href="{% url 'calendar' username prev_year prev_month %}">&lt; Previous</a>
+            <a class="button" href="{% url 'calendar' username next_year next_month %}">Next &gt;</a>
+        </div>
     {% endif %}
 {% endblock %}
