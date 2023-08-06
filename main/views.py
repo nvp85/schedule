@@ -352,3 +352,12 @@ class SetTimezoneView(View):
     def post(self, request, **kwargs):
         request.session['django_timezone'] = request.POST['timezone']
         return redirect('home')
+    
+
+class InvitationCreateMenu(LoginRequiredMixin, TestOwnershipMixin, CreateView):
+    model = Invitation
+    fields = ['event', 'max_number_of_uses', 'expiration_time']
+    template_name = 'invitation_create.html'
+    
+    def get_success_url(self) -> str:
+        return reverse_lazy('active_invitations', kwargs=dict(username=self.request.user.username))

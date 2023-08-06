@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
     ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess,\
-    SetTimezoneGuestView, SetTimezoneView, InvitationListView
+    SetTimezoneGuestView, SetTimezoneView, InvitationListView, InvitationCreateMenu
 
 
 urlpatterns = [
@@ -139,6 +139,7 @@ urlpatterns = [
         r'^(?P<username>[\-\.\w]+)/(?P<event_slug>[\-\.\w]+)$',
         CalendarRedirectView.as_view(),
         name='event_calendar_redirect'),
+
     re_path(
         r'^(?P<username>[\-\.\w]+)/(?P<event_slug>[\-\.\w]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})$',
         ScheduleView.as_view(),
@@ -156,13 +157,18 @@ urlpatterns = [
         name='event_schedule_form'
     ),
 
-    # Create an invitation link
+    # Create an invitation link for a specific event
     re_path(
         r'^(?P<username>[\-\.\w]+)/(?P<event_slug>[\-\.\w]+)/create_invites$',
         InvitationCreate.as_view(),
         name='invitation_create'
     ),
-
+    # Create an invitation link from the main menu
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/invite/create$',
+        InvitationCreateMenu.as_view(),
+        name='invitation_create_menu'
+    ),
 
 
     path('', Home.as_view(), name='home'),
