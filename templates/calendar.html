@@ -4,6 +4,7 @@
     {% if invite %}
         <p>{{ user }}</p>
     <p>Schedule the {{ invite.event.title }}, {{ invite.event.duration }} with {{ invite.event.owner.username }}</p>
+    <p>Your current time zone is {{ TIME_ZONE }}. <a href="{% url 'set_timezone_guest' uuid %}">Change the time zone.</a></p>
     {% endif %}
     <h2 class="mb-2 ">
         <span class="is-size-4">{{ month_name }}, {{ year }}</span>
