@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load filters %}
 
 {% block content %}
     {% if username %}
@@ -30,7 +31,7 @@
             {% if i in schedule_dict %}
                 <td>{{ i|time:"H:i" }}</td>
                 <td>
-                    xxx
+                    {{ schedule_dict|dict_get:i }}
                 </td>
             {% else %}
                 <td>
