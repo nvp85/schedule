@@ -31,7 +31,11 @@
             {% if i in schedule_dict %}
                 <td>{{ i|time:"H:i" }}</td>
                 <td>
+                    {% if invite %}
+                    unavailable
+                    {% else %}
                     {{ schedule_dict|dict_get:i }}
+                    {% endif %}
                 </td>
             {% else %}
                 <td>
