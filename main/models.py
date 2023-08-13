@@ -106,3 +106,26 @@ class Schedule(models.Model):
         if conflicting_events.exists():
             raise ValidationError('Events overlap in time! Please choose different start time.')
         return cleaned_data
+
+
+class AvailabilityWindow(models.Model):
+    MONDAY = "Mo"
+    TUESDAY = "Tu"
+    WEDNESDAY = "We"
+    THURSDAY = "Th"
+    FRIDAY = "Fr"
+    SATURDAY = "Sa"
+    SUNDAY = "Su"
+    DAYS_OF_WEEK = [
+        (MONDAY, "Monday"),
+        (TUESDAY, "Tuesday"),
+        (WEDNESDAY, "Wednesday"),
+        (THURSDAY, "Thursday"),
+        (FRIDAY, "Friday"),
+        (SATURDAY, "Saturday"),
+        (SUNDAY, "Sunday"),
+    ]
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    week_day = models.CharField(max_length=2, choices=DAYS_OF_WEEK, null=False, blank=False)
+    start_time = models.TimeField(null=False, blank=False)
+    end_time = models.TimeField(null=False, blank=False)
