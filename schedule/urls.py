@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
     ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess,\
-    SetTimezoneGuestView, SetTimezoneView, InvitationListView, InvitationCreateMenu
+    SetTimezoneGuestView, SetTimezoneView, InvitationListView, InvitationCreateMenu, SetAvailabilityWindow
 
 
 urlpatterns = [
@@ -133,6 +133,12 @@ urlpatterns = [
         r'^(?P<username>[\-\.\w]+)/active_invitations$',
         InvitationListView.as_view(),
         name='active_invitations'),
+
+    # Set an availability window
+    re_path(
+        r'^(?P<username>[\-\.\w]+)/set_availability$',
+        SetAvailabilityWindow.as_view(),
+        name='set_availability'),
 
     # Schedule an Event from event list
     re_path(

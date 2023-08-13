@@ -39,7 +39,7 @@
                                 <div class="navbar-dropdown">
                                     <a class="navbar-item" href="{% url 'active_invitations' user.username %}">Active links</a>
                                     <a class="navbar-item" href="{% url 'invitation_create_menu' user.username %}">Create new link</a>
-                                    <a class="navbar-item">Availability windows</a>
+                                    <a class="navbar-item" href="{% url 'set_availability' user.username %}">Availability windows</a>
                                 </div>
                             </div>
                             {% endif %}

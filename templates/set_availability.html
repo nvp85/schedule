@@ -1,6 +1,20 @@
 {% extends 'base.html' %}
-
+{% load filters %}
 {% block content %}
-
-
+<div class="columns">
+    <div class="column is-narrow">
+    <p>Set a new availability window</p>
+    <form method="post" action="">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="field">
+            <div class="label" for="{{ field.id_for_label }}">{{ field.label }}</div>
+            {{ field.errors }}
+            <div class="control">{{ field|add_class:"input" }}</div>
+        </div>
+        {% endfor %}
+        <input type="submit" value="submit" class="button is-primary">
+    </form>
+    </div>
+</div>
 {% endblock %}

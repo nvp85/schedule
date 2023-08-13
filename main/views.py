@@ -15,7 +15,7 @@ from datetime import date
 from datetime import datetime, timedelta
 import calendar
 import pytz
-from .models import Schedule, Event, Invitation
+from .models import Schedule, Event, Invitation, AvailabilityWindow
 from main.utils import get_invite_or_403
 
 
@@ -361,3 +361,9 @@ class InvitationCreateMenu(LoginRequiredMixin, TestOwnershipMixin, CreateView):
     
     def get_success_url(self) -> str:
         return reverse_lazy('active_invitations', kwargs=dict(username=self.request.user.username))
+
+
+class SetAvailabilityWindow(LoginRequiredMixin, CreateView):
+    model = AvailabilityWindow
+    fields = ['week_day', 'start_time', 'end_time']
+    template_name = 'set_availability.html'
