@@ -367,3 +367,10 @@ class SetAvailabilityWindow(LoginRequiredMixin, CreateView):
     model = AvailabilityWindow
     fields = ['week_day', 'start_time', 'end_time']
     template_name = 'set_availability.html'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+    
+    def get_success_url(self) -> str:
+        return reverse_lazy('set_availability', kwargs=dict(username=self.request.user.username))

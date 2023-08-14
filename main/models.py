@@ -129,3 +129,4 @@ class AvailabilityWindow(models.Model):
     week_day = models.CharField(max_length=2, choices=DAYS_OF_WEEK, null=False, blank=False)
     start_time = models.TimeField(null=False, blank=False)
     end_time = models.TimeField(null=False, blank=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
