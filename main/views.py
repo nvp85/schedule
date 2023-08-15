@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional
+from django.db import models
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.exceptions import ValidationError
@@ -236,7 +237,7 @@ class GetEventMixin:
 
 class EventDelete(LoginRequiredMixin, GetEventMixin, TestOwnershipMixin, DeleteView):
     model = Event
-    template_name = 'event_delete.html'
+    template_name = 'confirm_delete.html'
 
 
 class EventUpdate(LoginRequiredMixin, GetEventMixin, TestOwnershipMixin, UpdateView):
@@ -374,3 +375,28 @@ class SetAvailabilityWindow(LoginRequiredMixin, CreateView):
     
     def get_success_url(self) -> str:
         return reverse_lazy('set_availability', kwargs=dict(username=self.request.user.username))
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['list_of_windows'] = AvailabilityWindow.objects.filter(owner=self.request.user)
+        return context
+    
+
+class DeleteAvailabilityWindow(LoginRequiredMixin, TestOwnershipMixin, DeleteView):
+    model = AvailabilityWindow
+    template_name = 'confirm_delete.html'
+    
+    def get_success_url(self) -> str:
+        return reverse_lazy('set_availability', kwargs=dict(username=self.request.user.username))
+    
+    def get_object(self, queryset: None):
+        uuid = self.kwargs.get('uuid')
+        if not queryset:
+            queryset = self.get_queryset()
+        obj = get_object_or_404(queryset, uuid=uuid)
+        return obj
+    
+    def get_queryset(self):
+        owner = self.request.user
+        q = AvailabilityWindow.objects.filter(owner=owner)
+        return q

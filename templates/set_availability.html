@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load filters %}
 {% block content %}
+{% for w in list_of_windows %}
+<p>{{ w }} <a href="{% url 'availability_delete' w.owner.username w.uuid %}">delete</a></p>
+{% endfor %}
 <div class="columns">
     <div class="column is-narrow">
     <p>Set a new availability window</p>

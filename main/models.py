@@ -130,3 +130,9 @@ class AvailabilityWindow(models.Model):
     start_time = models.TimeField(null=False, blank=False)
     end_time = models.TimeField(null=False, blank=False)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    def __str__(self) -> str:
+        return f'Availability Window: { self.week_day }, { self.start_time }-{ self.end_time }'
+    
+    def get_absolute_url(self):
+        return reverse('set_availability', kwargs={'username':self.owner.username})
