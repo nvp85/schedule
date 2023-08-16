@@ -389,7 +389,7 @@ class DeleteAvailabilityWindow(LoginRequiredMixin, TestOwnershipMixin, DeleteVie
     def get_success_url(self) -> str:
         return reverse_lazy('set_availability', kwargs=dict(username=self.request.user.username))
     
-    def get_object(self, queryset: None):
+    def get_object(self, queryset=None):
         uuid = self.kwargs.get('uuid')
         if not queryset:
             queryset = self.get_queryset()
