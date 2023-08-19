@@ -26,7 +26,7 @@ class TestOwnershipMixin(UserPassesTestMixin):
         username = self.kwargs.get('username')
         uuid = self.kwargs.get('uuid')
         if username:
-            if self.request.user.is_authenticated and self.request.user.username == self.kwargs.get("username"):
+            if self.request.user.is_authenticated and self.request.user.username == username:
                 return True
         elif uuid:
             return True
@@ -382,7 +382,7 @@ class SetAvailabilityWindow(LoginRequiredMixin, CreateView):
         return context
     
 
-class DeleteAvailabilityWindow(LoginRequiredMixin, TestOwnershipMixin, DeleteView):
+class DeleteAvailabilityWindow(LoginRequiredMixin, DeleteView):
     model = AvailabilityWindow
     template_name = 'confirm_delete.html'
     
@@ -393,9 +393,8 @@ class DeleteAvailabilityWindow(LoginRequiredMixin, TestOwnershipMixin, DeleteVie
         uuid = self.kwargs.get('uuid')
         if not queryset:
             queryset = self.get_queryset()
-        obj = get_object_or_404(queryset, uuid=uuid)
-        return obj
-    
+        return get_object_or_404(queryset, uuid=uuid)
+        
     def get_queryset(self):
         owner = self.request.user
         q = AvailabilityWindow.objects.filter(owner=owner)
