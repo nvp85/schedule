@@ -136,3 +136,8 @@ class AvailabilityWindow(models.Model):
     
     def get_absolute_url(self):
         return reverse('set_availability', kwargs={'username':self.owner.username})
+    
+    def get_dayname(self):
+        for day, name in self.DAYS_OF_WEEK:
+            if day == self.week_day:
+                return name
