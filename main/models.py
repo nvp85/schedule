@@ -85,7 +85,7 @@ class Schedule(models.Model):
         return end_time
 
     def __str__(self):
-        return self.event.title
+        return self.event.title + ": " + self.start_time
 
     def get_absolute_url(self):
         username = self.event.owner.username

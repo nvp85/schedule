@@ -382,20 +382,38 @@ class SetAvailabilityWindow(LoginRequiredMixin, CreateView):
         return context
     
 
-class DeleteAvailabilityWindow(LoginRequiredMixin, DeleteView):
-    model = AvailabilityWindow
-    template_name = 'confirm_delete.html'
-    
-    def get_success_url(self) -> str:
-        return reverse_lazy('set_availability', kwargs=dict(username=self.request.user.username))
-    
+class GetObjectMixin:
+
     def get_object(self, queryset=None):
         uuid = self.kwargs.get('uuid')
         if not queryset:
             queryset = self.get_queryset()
         return get_object_or_404(queryset, uuid=uuid)
         
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
         owner = self.request.user
-        q = AvailabilityWindow.objects.filter(owner=owner)
-        return q
+        q = super().get_queryset(*args, **kwargs)
+        return q.filter(owner=owner)
+
+
+class DeleteAvailabilityWindow(LoginRequiredMixin, GetObjectMixin, DeleteView):
+    model = AvailabilityWindow
+    template_name = 'confirm_delete.html'
+    
+    def get_success_url(self) -> str:
+        return reverse_lazy('set_availability', kwargs=dict(username=self.request.user.username))
+    
+    
+class ScheduleCancel(LoginRequiredMixin, GetObjectMixin, DeleteView):
+    model = Schedule
+    template_name = 'confirm_delete.html'
+
+    def get_success_url(self) -> str:
+        scheduled = self.object.start_time
+        year = f'{scheduled.year:04d}'
+        month = f'{scheduled.month:02d}'
+        day = f'{scheduled.day:02d}'
+        return reverse_lazy('schedule', kwargs=dict(username=self.request.user.username, year=year, month=month, day=day))
+
+    
+
