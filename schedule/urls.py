@@ -18,7 +18,8 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from main.views import SignUp, Home, ScheduleView, EventView, CalendarRedirectView, CalendarView, \
     ScheduleCreate, EventCreate, EventDelete, EventUpdate, InvitationCreate, ScheduleAsGuest, ScheduleAsGuestSuccess,\
-    SetTimezoneGuestView, SetTimezoneView, InvitationListView, InvitationCreateMenu, SetAvailabilityWindow, DeleteAvailabilityWindow
+    SetTimezoneGuestView, SetTimezoneView, InvitationListView, InvitationCreateMenu, SetAvailabilityWindow, DeleteAvailabilityWindow,\
+    ScheduleCancel
 
 
 urlpatterns = [
@@ -111,6 +112,12 @@ urlpatterns = [
         r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<time>[0-5][0-9]:[0-5][0-9])$',
         ScheduleCreate.as_view(),
         name='schedule_event_form'
+    ),
+    # Cancel a scheduled event
+        re_path(
+        r'^(?P<username>[\-\.\w]+)/schedule_event/cancel/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})$',
+        ScheduleCancel.as_view(),
+        name='schedule_cancel'
     ),
 
     # Individual Event edit/delete/schedule/create an Invitation link

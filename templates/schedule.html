@@ -9,7 +9,7 @@
             {% if schedule_list %}
                 <ul>
                 {% for event in schedule_list %}
-                    <li>{{ event.event.title }} {{ event.start_time }} - {{ event.end_time }} </li>
+                    <li>{{ event.event.title }} {{ event.start_time }} - {{ event.end_time }}, <a href="{% url 'schedule_cancel' username event.uuid %}">cancel</a> </li>
                 {% endfor %}
                 </ul>
             {% else %}
