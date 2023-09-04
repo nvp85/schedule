@@ -85,7 +85,8 @@ class Schedule(models.Model):
         return end_time
 
     def __str__(self):
-        return f'{self.event.title} : {self.start_time}'
+        tz = timezone.get_current_timezone()
+        return f'{self.event.title} : {self.start_time.astimezone(tz)}'
 
     def get_absolute_url(self):
         username = self.event.owner.username
