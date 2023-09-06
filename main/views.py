@@ -390,10 +390,16 @@ class GetObjectMixin:
             queryset = self.get_queryset()
         return get_object_or_404(queryset, uuid=uuid)
         
-    #def get_queryset(self, *args, **kwargs):
-        #owner = self.request.user
-        #q = super().get_queryset(*args, **kwargs)
-        #return q.filter(owner=owner)
+    def get_queryset(self, *args, **kwargs):
+        owner = self.request.user
+        q = super().get_queryset(*args, **kwargs)
+        if q.exist():
+            fields = set(q.all().values()[0]) # 
+            if 'owner' in fields:
+                return q.filter(owner=owner)
+            elif 'event' in fields:
+                return q.filter(event__owner=owner)
+        return q
 
 
 class DeleteAvailabilityWindow(LoginRequiredMixin, GetObjectMixin, DeleteView):
