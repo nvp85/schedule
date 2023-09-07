@@ -128,7 +128,7 @@ class AvailabilityWindow(models.Model):
     ]
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     week_day = models.CharField(max_length=2, choices=DAYS_OF_WEEK, null=False, blank=False)
-    start_time = models.TimeField(null=False, blank=False)
+    start_time = models.TimeField(null=False, blank=False) #TODO: time should be stored in utc and the day of the week should be corrected accordingly 
     end_time = models.TimeField(null=False, blank=False)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 

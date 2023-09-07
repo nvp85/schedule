@@ -141,7 +141,20 @@ class ScheduleView(TestOwnershipMixin, ListView):
             context['invite'] = get_object_or_404(Invitation, uuid=self.kwargs['uuid'])
         time_delta = timedelta(seconds=1800) # 30 min
         context['time_delta'] = time_delta
-        context['time_list'] = [day_begins + i * time_delta for i in range(48)]
+        if 'uuid' in context:
+            # users' availability windows will be stored in utc, so it would be 2 days of week
+            weekdays = [calendar.day_name[day_begins.weekday()][:2], calendar.day_name[day_ends.weekday()][:2]]
+            avail_windows = AvailabilityWindow.objects.filter(owner=context['invite'].event.owner, week_day__in=weekdays).order_by('end_time')
+            time_list = []
+            for w in avail_windows: # works only if the windows dont overlap
+                for i in range(48):
+                    t = day_begins + i * time_delta
+                    if w.start_time <= t <= w.end_time:
+                        time_list.append(t) 
+            context['time_list'] = time_list
+        else:
+            context['time_list'] = [day_begins + i * time_delta for i in range(48)]
+        
         q = context['schedule_list']
         context['schedule_dict'] = {}
         for event in q:
@@ -370,6 +383,7 @@ class SetAvailabilityWindow(LoginRequiredMixin, CreateView):
     template_name = 'set_availability.html'
 
     def form_valid(self, form):
+        tz = timezone.get_current_timezone() # windows are not in utc yet
         form.instance.owner = self.request.user
         return super().form_valid(form)
     
