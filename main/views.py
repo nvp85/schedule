@@ -13,11 +13,12 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import F
 from datetime import date
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import calendar
 import pytz
 from .models import Schedule, Event, Invitation, AvailabilityWindow
 from main.utils import get_invite_or_403
+from itertools import chain
 
 
 class TestOwnershipMixin(UserPassesTestMixin):
@@ -132,8 +133,8 @@ class ScheduleView(TestOwnershipMixin, ListView):
         # this day is supposed to be in the current timezone, as user/guest chooses it
         context['date'] = day
         # current timezone to utc
-        day_begins = timezone.make_aware(datetime.combine(day, datetime.min.time())).astimezone(pytz.utc)
-        day_ends = timezone.make_aware(datetime.combine(day, datetime.max.time())).astimezone(pytz.utc)
+        day_begins = timezone.make_aware(datetime.combine(day, time.min)).astimezone(pytz.utc)
+        day_ends = timezone.make_aware(datetime.combine(day, time.max)).astimezone(pytz.utc)
         if self.kwargs.get("username"):
             context['username'] = self.kwargs['username']
             context['event_slug'] = self.kwargs.get('event_slug')
@@ -141,15 +142,28 @@ class ScheduleView(TestOwnershipMixin, ListView):
             context['invite'] = get_object_or_404(Invitation, uuid=self.kwargs['uuid'])
         time_delta = timedelta(seconds=1800) # 30 min
         context['time_delta'] = time_delta
-        if 'uuid' in context:
+        if 'invite' in context:
             # users' availability windows will be stored in utc, so it would be 2 days of week
-            weekdays = [calendar.day_name[day_begins.weekday()][:2], calendar.day_name[day_ends.weekday()][:2]]
-            avail_windows = AvailabilityWindow.objects.filter(owner=context['invite'].event.owner, week_day__in=weekdays).order_by('end_time')
+            # for now let's assume that a window is always fit in one day: start and end time are withing one day TODO: to deal with this restriction 
+            # when a user in other tz than utc, a window in utc might fall into 2 consecutive days 
+            day1 = calendar.day_name[day_begins.weekday()][:2]
+            day2 = calendar.day_name[day_ends.weekday()][:2]
+            avail_windows1 = AvailabilityWindow.objects.filter(owner=context['invite'].event.owner, week_day=day1).order_by('end_time')
+            avail_windows2 = AvailabilityWindow.objects.filter(owner=context['invite'].event.owner, week_day=day2).order_by('end_time') if day1 != day2 else AvailabilityWindow.objects.none()
             time_list = []
-            for w in avail_windows: # works only if the windows dont overlap
+            for w in avail_windows1: # works only if the windows dont overlap
+                start_time = timezone.make_aware(datetime.combine(day_begins.date(), w.start_time)).astimezone(pytz.utc)
+                end_time = timezone.make_aware(datetime.combine(day_begins.date(), w.end_time)).astimezone(pytz.utc)
                 for i in range(48):
                     t = day_begins + i * time_delta
-                    if w.start_time <= t <= w.end_time:
+                    if start_time <= t < end_time:
+                        time_list.append(t) 
+            for w in avail_windows2:
+                start_time = timezone.make_aware(datetime.combine(day_ends.date(), w.start_time)).astimezone(pytz.utc)
+                end_time = timezone.make_aware(datetime.combine(day_ends.date(), w.end_time)).astimezone(pytz.utc)
+                for i in range(48):
+                    t = day_begins + i * time_delta
+                    if start_time <= t < end_time:
                         time_list.append(t) 
             context['time_list'] = time_list
         else:
